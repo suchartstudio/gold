@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ราคาทองคำ Real-time TV Display</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Jakkrapetch&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #000; color: #fff; transition: background-color 0.5s; }
-        .big-text { font-size: 8rem; line-height: 1; font-weight: 900; }
+        body { font-family: 'Jakkrapetch', sans-serif; background-color: #000; color: #fff; transition: background-color 0.5s; }
+        .big-text { font-size: 7rem; line-height: 1; font-weight: bold; }
+        .diff-text { font-size: 3rem; font-weight: bold; }
         .label-text { font-size: 2.5rem; color: #94a3b8; }
         .flash-alert { background-color: #7f1d1d !important; }
     </style>
@@ -22,15 +23,21 @@
     </div>
 
     <div class="w-full grid grid-cols-2 gap-8 px-10">
-        <div id="barCard" class="bg-slate-900 p-10 rounded-3xl border-4 border-yellow-600">
+        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-yellow-600">
             <h2 class="text-5xl font-bold text-yellow-400 mb-6 border-b border-yellow-800 pb-4">ทองคำแท่ง</h2>
             <div class="flex flex-col gap-6">
-                <div><p class="label-text">รับซื้อ</p><p id="barBuy" class="big-text text-white">0</p></div>
-                <div><p class="label-text">ขายออก</p><p id="barSell" class="big-text text-yellow-400">0</p></div>
+                <div>
+                    <p class="label-text">รับซื้อ <span id="diffBuy" class="ml-4"></span></p>
+                    <p id="barBuy" class="big-text text-white">0</p>
+                </div>
+                <div>
+                    <p class="label-text">ขายออก</p>
+                    <p id="barSell" class="big-text text-yellow-400">0</p>
+                </div>
             </div>
         </div>
 
-        <div id="ornCard" class="bg-slate-900 p-10 rounded-3xl border-4 border-emerald-600">
+        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-emerald-600">
             <h2 class="text-5xl font-bold text-emerald-400 mb-6 border-b border-emerald-800 pb-4">ทองรูปพรรณ</h2>
             <div class="flex flex-col gap-6">
                 <div><p class="label-text">รับซื้อ</p><p id="ornBuy" class="big-text text-white">0</p></div>
@@ -52,16 +59,11 @@
         async function triggerAlert() {
             const body = document.body;
             document.getElementById('alertSound').play();
-            
-            // กระพริบแดง 10 วินาที
             let count = 0;
             const flash = setInterval(() => {
                 body.classList.toggle('flash-alert');
                 count++;
-                if (count >= 20) { // 20 ครั้ง = 10 วินาที
-                    clearInterval(flash);
-                    body.classList.remove('flash-alert');
-                }
+                if (count >= 20) { clearInterval(flash); body.classList.remove('flash-alert'); }
             }, 500);
         }
 
@@ -70,31 +72,32 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 const ref = data.find(item => item.GoldType === "REF") || data[0];
-
                 const barBuy = parseFloat(ref.Buy.replace(/,/g, ''));
                 const barSell = parseFloat(ref.Sell.replace(/,/g, ''));
 
-                // เช็คการเปลี่ยนราคา
+                // คำนวณส่วนต่าง
                 if (lastPrice !== 0 && lastPrice !== barBuy) {
+                    const diff = barBuy - lastPrice;
+                    const diffEl = document.getElementById('diffBuy');
+                    diffEl.innerText = (diff > 0 ? "+" : "") + diff;
+                    diffEl.className = "diff-text " + (diff > 0 ? "text-emerald-400" : "text-red-500");
                     triggerAlert();
                 }
-                lastPrice = barBuy;
 
+                lastPrice = barBuy;
                 document.getElementById('barBuy').innerText = formatNumber(barBuy);
                 document.getElementById('barSell').innerText = formatNumber(barSell);
                 document.getElementById('ornBuy').innerText = formatNumber(barBuy - 800);
                 document.getElementById('ornSell').innerText = formatNumber(barSell + 500);
 
                 const dateObj = new Date(ref.TimeUpdate);
-                document.getElementById('systemStatus').innerText = 
-                    `อัปเดต: ${dateObj.toLocaleDateString('th-TH')} เวลา ${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.`;
-
+                document.getElementById('systemStatus').innerText = `อัปเดต: ${dateObj.toLocaleDateString('th-TH')} เวลา ${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.`;
             } catch (error) {
                 console.error(error);
             }
         }
 
-        setInterval(fetchGoldPrice, 30000); // เช็คทุก 30 วินาที
+        setInterval(fetchGoldPrice, 30000);
         fetchGoldPrice();
     </script>
 </body>
