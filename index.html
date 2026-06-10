@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ราคาทองคำ Real-time TV Display</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Prompt', sans-serif; background-color: #000; color: #fff; }
-        .big-text { font-size: 7rem; line-height: 1; font-weight: 900; }
-        .label-text { font-size: 2.5rem; color: #94a3b8; margin-bottom: 0.5rem; }
+        body { font-family: 'Prompt', sans-serif; background-color: #000; color: #fff; transition: background-color 0.5s; }
+        .big-text { font-size: 8rem; line-height: 1; font-weight: 900; }
+        .label-text { font-size: 2.5rem; color: #94a3b8; }
+        .flash-alert { background-color: #7f1d1d !important; }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col justify-center items-center overflow-hidden p-8">
@@ -21,44 +22,47 @@
     </div>
 
     <div class="w-full grid grid-cols-2 gap-8 px-10">
-        
-        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-yellow-600">
-            <h2 class="text-5xl font-bold text-yellow-400 mb-6 border-b border-yellow-800 pb-4">ทองคำแท่ง (REF)</h2>
+        <div id="barCard" class="bg-slate-900 p-10 rounded-3xl border-4 border-yellow-600">
+            <h2 class="text-5xl font-bold text-yellow-400 mb-6 border-b border-yellow-800 pb-4">ทองคำแท่ง</h2>
             <div class="flex flex-col gap-6">
-                <div>
-                    <p class="label-text">รับซื้อ</p>
-                    <p id="barBuy" class="big-text text-white">0.00</p>
-                </div>
-                <div>
-                    <p class="label-text">ขายออก</p>
-                    <p id="barSell" class="big-text text-yellow-400">0.00</p>
-                </div>
+                <div><p class="label-text">รับซื้อ</p><p id="barBuy" class="big-text text-white">0</p></div>
+                <div><p class="label-text">ขายออก</p><p id="barSell" class="big-text text-yellow-400">0</p></div>
             </div>
         </div>
 
-        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-emerald-600">
+        <div id="ornCard" class="bg-slate-900 p-10 rounded-3xl border-4 border-emerald-600">
             <h2 class="text-5xl font-bold text-emerald-400 mb-6 border-b border-emerald-800 pb-4">ทองรูปพรรณ</h2>
             <div class="flex flex-col gap-6">
-                <div>
-                    <p class="label-text">รับซื้อ</p>
-                    <p id="ornBuy" class="big-text text-white">0.00</p>
-                </div>
-                <div>
-                    <p class="label-text">ขายออก</p>
-                    <p id="ornSell" class="big-text text-emerald-400">0.00</p>
-                </div>
+                <div><p class="label-text">รับซื้อ</p><p id="ornBuy" class="big-text text-white">0</p></div>
+                <div><p class="label-text">ขายออก</p><p id="ornSell" class="big-text text-emerald-400">0</p></div>
             </div>
         </div>
-
     </div>
+
+    <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
     <script>
         const API_URL = "https://apicheckpricev3.huasengheng.com/api/Values/GetPrice";
-        const FEE_BUY = 800;
-        const FEE_SELL = 500;
+        let lastPrice = 0;
 
-        function formatCurrency(num) {
-            return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+        function formatNumber(num) {
+            return new Intl.NumberFormat('th-TH', { maximumFractionDigits: 0 }).format(num);
+        }
+
+        async function triggerAlert() {
+            const body = document.body;
+            document.getElementById('alertSound').play();
+            
+            // กระพริบแดง 10 วินาที
+            let count = 0;
+            const flash = setInterval(() => {
+                body.classList.toggle('flash-alert');
+                count++;
+                if (count >= 20) { // 20 ครั้ง = 10 วินาที
+                    clearInterval(flash);
+                    body.classList.remove('flash-alert');
+                }
+            }, 500);
         }
 
         async function fetchGoldPrice() {
@@ -70,21 +74,27 @@
                 const barBuy = parseFloat(ref.Buy.replace(/,/g, ''));
                 const barSell = parseFloat(ref.Sell.replace(/,/g, ''));
 
-                document.getElementById('barBuy').innerText = formatCurrency(barBuy);
-                document.getElementById('barSell').innerText = formatCurrency(barSell);
-                document.getElementById('ornBuy').innerText = formatCurrency(barBuy - FEE_BUY);
-                document.getElementById('ornSell').innerText = formatCurrency(barSell + FEE_SELL);
+                // เช็คการเปลี่ยนราคา
+                if (lastPrice !== 0 && lastPrice !== barBuy) {
+                    triggerAlert();
+                }
+                lastPrice = barBuy;
+
+                document.getElementById('barBuy').innerText = formatNumber(barBuy);
+                document.getElementById('barSell').innerText = formatNumber(barSell);
+                document.getElementById('ornBuy').innerText = formatNumber(barBuy - 800);
+                document.getElementById('ornSell').innerText = formatNumber(barSell + 500);
 
                 const dateObj = new Date(ref.TimeUpdate);
                 document.getElementById('systemStatus').innerText = 
-                    `อัปเดต: ${dateObj.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'})} เวลา ${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.`;
+                    `อัปเดต: ${dateObj.toLocaleDateString('th-TH')} เวลา ${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.`;
 
             } catch (error) {
-                document.getElementById('systemStatus').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อข้อมูล";
+                console.error(error);
             }
         }
 
-        setInterval(fetchGoldPrice, 60000);
+        setInterval(fetchGoldPrice, 30000); // เช็คทุก 30 วินาที
         fetchGoldPrice();
     </script>
 </body>
