@@ -6,11 +6,8 @@
     <title>ระบบรายงานราคาทองคำ Real-time</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥇</text></svg>">
-    
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -34,14 +31,14 @@
                 <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200">
                     THAI GOLD PRICE
                 </h1>
-                <p class="text-slate-400 text-sm mt-1">รายงานราคาทองคำอ้างอิงจากสมาคมผู้ค้าทองคำ</p>
+                <p class="text-slate-400 text-sm mt-1">ดึงข้อมูลตรงจากหน้าเว็บสมาคมผู้ค้าทองคำ</p>
             </div>
             <div class="flex items-center space-x-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-xs text-slate-300">
                 <span class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <span id="systemStatus">กำลังดึงข้อมูล...</span>
+                <span id="systemStatus">กำลังดึงข้อมูลจากเว็บสมาคมฯ...</span>
             </div>
         </div>
 
@@ -96,8 +93,9 @@
     </div>
 
     <script>
-        // API หลักที่มีความน่าเชื่อถือสูงสุด
-        const API_URL = "https://api.chnwt.dev/thai-gold-api/latest";
+        // ใช้ CORS Proxy เพื่อดึง HTML ตรงจากเว็บสมาคมฯ
+        const PROXY_URL = "https://api.allorigins.win/raw?url=";
+        const TARGET_URL = "https://www.goldtraders.or.th/";
         
         function cleanPrice(priceStr) {
             if (!priceStr) return 0;
@@ -105,44 +103,61 @@
         }
 
         function formatCurrency(num) {
-            // บังคับให้แสดงทศนิยม 2 ตำแหน่งเสมอ เพื่อให้โชว์ .00
+            if (isNaN(num) || num === 0) return "0.00 ฿";
             return new Intl.NumberFormat('th-TH', { 
                 minimumFractionDigits: 2, 
                 maximumFractionDigits: 2 
             }).format(num) + ' ฿';
         }
 
-        async function fetchGoldData() {
+        async function fetchGoldDataDirectly() {
             const systemStatus = document.getElementById('systemStatus');
 
             try {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error("API Connection Failed");
+                // ดึงข้อมูล HTML จากหน้าเว็บสมาคมฯ
+                const response = await fetch(PROXY_URL + encodeURIComponent(TARGET_URL));
+                if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลหน้าเว็บได้");
                 
-                const data = await response.json();
-                const goldData = data.response;
+                const htmlText = await response.text();
                 
-                // สกัดและแปลงค่า
-                const liveBarBuy = cleanPrice(goldData.price.gold_bar.buy);
-                const liveBarSell = cleanPrice(goldData.price.gold_bar.sell);
-                const liveOrnBuy = cleanPrice(goldData.price.gold.buy);
-                const liveOrnSell = cleanPrice(goldData.price.gold.sell);
+                // แปลง Text เป็น HTML DOM เพื่อให้ใช้คำสั่ง getElementById ได้
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, "text/html");
+                
+                // เจาะหา ID ของตัวเลขราคาทองบนเว็บสมาคมฯ
+                // อ้างอิง ID จากโครงสร้างเว็บ https://www.goldtraders.or.th/
+                const rawBarBuy = doc.getElementById("DetailPlace_uc_goldprices1_lblTarBuy")?.innerText || "0";
+                const rawBarSell = doc.getElementById("DetailPlace_uc_goldprices1_lblTarSell")?.innerText || "0";
+                const rawOrnBuy = doc.getElementById("DetailPlace_uc_goldprices1_lblGoldBuy")?.innerText || "0";
+                const rawOrnSell = doc.getElementById("DetailPlace_uc_goldprices1_lblGoldSell")?.innerText || "0";
+                const updateTimeText = doc.getElementById("DetailPlace_uc_goldprices1_lblAsTime")?.innerText || "ไม่ทราบเวลา";
 
-                // แสดงผลบนเว็บ (ตอนนี้จะแสดงเลข .00 เสมอ)
+                // แปลงข้อความเป็นตัวเลข
+                const liveBarBuy = cleanPrice(rawBarBuy);
+                const liveBarSell = cleanPrice(rawBarSell);
+                const liveOrnBuy = cleanPrice(rawOrnBuy);
+                const liveOrnSell = cleanPrice(rawOrnSell);
+
+                // ตรวจสอบว่าได้ข้อมูลมาจริงหรือไม่
+                if (liveBarBuy === 0) throw new Error("โครงสร้างหน้าเว็บอาจมีการเปลี่ยนแปลง");
+
+                // แสดงผลบนหน้าเว็บ
                 document.getElementById('barBuy').innerText = formatCurrency(liveBarBuy);
                 document.getElementById('barSell').innerText = formatCurrency(liveBarSell);
                 document.getElementById('ornBuy').innerText = formatCurrency(liveOrnBuy);
                 document.getElementById('ornSell').innerText = formatCurrency(liveOrnSell);
 
-                systemStatus.innerText = `อัปเดตล่าสุด: ${goldData.update_date} เวลา ${goldData.update_time}`;
+                // ดึงเฉพาะส่วนเวลามาแสดง (ตัดคำว่า "ประจำวันที่" ออกให้สั้นลง)
+                const shortTime = updateTimeText.replace("ประจำวันที่ ", "");
+                systemStatus.innerText = `อัปเดตล่าสุด: ${shortTime}`;
                 systemStatus.classList.replace('text-slate-300', 'text-emerald-400');
 
                 // วาดกราฟ
                 renderTrendChart(liveBarBuy);
 
             } catch (error) {
-                console.error("Fetch Error:", error);
-                systemStatus.innerText = "ไม่สามารถดึงข้อมูลราคาทองคำได้ในขณะนี้";
+                console.error("Scraping Error:", error);
+                systemStatus.innerText = "เกิดข้อผิดพลาดในการอ่านหน้าเว็บสมาคมฯ";
                 systemStatus.classList.replace('bg-slate-800', 'bg-rose-950');
                 systemStatus.classList.replace('text-slate-300', 'text-rose-400');
             }
@@ -156,7 +171,6 @@
                 goldChartInstance.destroy();
             }
 
-            // ข้อมูลจำลองสำหรับวาดกราฟอิงจากราคาปัจจุบัน
             const daysLabels = ['ย้อนหลัง 4 วัน', 'ย้อนหลัง 3 วัน', 'ย้อนหลัง 2 วัน', 'เมื่อวาน', 'ล่าสุด'];
             const historicalData = [
                 currentPrice - 200, 
@@ -192,7 +206,6 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    // จัดรูปแบบตัวเลขใน Tooltip ให้มี .00 ด้วย
                                     return new Intl.NumberFormat('th-TH', { 
                                         minimumFractionDigits: 2, 
                                         maximumFractionDigits: 2 
@@ -220,8 +233,7 @@
             });
         }
 
-        // เรียกใช้งานฟังก์ชันดึงข้อมูลเมื่อโหลดหน้าเว็บเสร็จ
-        window.onload = fetchGoldData;
+        window.onload = fetchGoldDataDirectly;
     </script>
 </body>
 </html>
