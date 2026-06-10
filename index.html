@@ -9,43 +9,43 @@
     
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #000; color: #fff; }
-        .big-text { font-size: 6rem; line-height: 1; } /* ขนาดใหญ่พิเศษสำหรับทีวี */
-        .label-text { font-size: 2rem; color: #94a3b8; }
+        .big-text { font-size: 7rem; line-height: 1; font-weight: 900; }
+        .label-text { font-size: 2.5rem; color: #94a3b8; margin-bottom: 0.5rem; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col justify-center items-center overflow-hidden p-10">
+<body class="h-screen w-screen flex flex-col justify-center items-center overflow-hidden p-8">
 
-    <div class="w-full text-center mb-10">
-        <h1 class="text-6xl font-bold text-yellow-500 uppercase tracking-widest">ราคาสมาคมค้าทองคำ 96.5%</h1>
-        <p id="systemStatus" class="text-3xl text-slate-400 mt-4">กำลังโหลดข้อมูล...</p>
+    <div class="w-full text-center mb-8">
+        <h1 class="text-7xl font-bold text-yellow-500 uppercase tracking-widest">ราคาสมาคมค้าทองคำ 96.5%</h1>
+        <p id="systemStatus" class="text-4xl text-slate-400 mt-4">กำลังโหลดข้อมูล...</p>
     </div>
 
-    <div class="w-full grid grid-cols-2 gap-10">
+    <div class="w-full grid grid-cols-2 gap-8 px-10">
         
-        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-yellow-600 shadow-2xl">
-            <h2 class="text-4xl font-bold text-yellow-400 mb-8">ทองคำแท่ง (REF)</h2>
-            <div class="grid grid-cols-2 gap-6">
+        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-yellow-600">
+            <h2 class="text-5xl font-bold text-yellow-400 mb-6 border-b border-yellow-800 pb-4">ทองคำแท่ง (REF)</h2>
+            <div class="flex flex-col gap-6">
                 <div>
                     <p class="label-text">รับซื้อ</p>
-                    <p id="barBuy" class="big-text font-black text-white">0.00</p>
+                    <p id="barBuy" class="big-text text-white">0.00</p>
                 </div>
                 <div>
                     <p class="label-text">ขายออก</p>
-                    <p id="barSell" class="big-text font-black text-yellow-400">0.00</p>
+                    <p id="barSell" class="big-text text-yellow-400">0.00</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-emerald-600 shadow-2xl">
-            <h2 class="text-4xl font-bold text-emerald-400 mb-8">ทองรูปพรรณ</h2>
-            <div class="grid grid-cols-2 gap-6">
+        <div class="bg-slate-900 p-10 rounded-3xl border-4 border-emerald-600">
+            <h2 class="text-5xl font-bold text-emerald-400 mb-6 border-b border-emerald-800 pb-4">ทองรูปพรรณ</h2>
+            <div class="flex flex-col gap-6">
                 <div>
                     <p class="label-text">รับซื้อ</p>
-                    <p id="ornBuy" class="big-text font-black text-white">0.00</p>
+                    <p id="ornBuy" class="big-text text-white">0.00</p>
                 </div>
                 <div>
                     <p class="label-text">ขายออก</p>
-                    <p id="ornSell" class="big-text font-black text-emerald-400">0.00</p>
+                    <p id="ornSell" class="big-text text-emerald-400">0.00</p>
                 </div>
             </div>
         </div>
@@ -54,10 +54,8 @@
 
     <script>
         const API_URL = "https://apicheckpricev3.huasengheng.com/api/Values/GetPrice";
-        
-        // ค่าธรรมเนียมทองรูปพรรณ (สามารถปรับเปลี่ยนได้)
-        const FEE_BUY = 800;  // ค่าเสื่อมรับซื้อ
-        const FEE_SELL = 500; // ค่ากำเหน็จขาย
+        const FEE_BUY = 800;
+        const FEE_SELL = 500;
 
         function formatCurrency(num) {
             return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
@@ -72,17 +70,11 @@
                 const barBuy = parseFloat(ref.Buy.replace(/,/g, ''));
                 const barSell = parseFloat(ref.Sell.replace(/,/g, ''));
 
-                // คำนวณราคาทองรูปพรรณ
-                const ornBuy = barBuy - FEE_BUY;
-                const ornSell = barSell + FEE_SELL;
-
-                // อัปเดตหน้าจอ
                 document.getElementById('barBuy').innerText = formatCurrency(barBuy);
                 document.getElementById('barSell').innerText = formatCurrency(barSell);
-                document.getElementById('ornBuy').innerText = formatCurrency(ornBuy);
-                document.getElementById('ornSell').innerText = formatCurrency(ornSell);
+                document.getElementById('ornBuy').innerText = formatCurrency(barBuy - FEE_BUY);
+                document.getElementById('ornSell').innerText = formatCurrency(barSell + FEE_SELL);
 
-                // วันเวลา
                 const dateObj = new Date(ref.TimeUpdate);
                 document.getElementById('systemStatus').innerText = 
                     `อัปเดต: ${dateObj.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'})} เวลา ${dateObj.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'})} น.`;
@@ -92,7 +84,7 @@
             }
         }
 
-        setInterval(fetchGoldPrice, 60000); // อัปเดตทุก 1 นาที
+        setInterval(fetchGoldPrice, 60000);
         fetchGoldPrice();
     </script>
 </body>
