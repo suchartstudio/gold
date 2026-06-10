@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบตรวจสอบและวิเคราะห์ราคาทองคำ Real-time</title>
+    <title>ระบบรายงานราคาทองคำ Real-time</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥇</text></svg>">
     
@@ -27,21 +27,21 @@
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-4xl mx-auto space-y-6">
         
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-6 gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200">
-                    GOLD PRICE AGGREGATOR
+                    THAI GOLD PRICE
                 </h1>
-                <p class="text-slate-400 text-sm mt-1">ระบบตรวจสอบราคาทองคำและวิเคราะห์ความแม่นยำจากหลายแหล่งข้อมูล</p>
+                <p class="text-slate-400 text-sm mt-1">รายงานราคาทองคำอ้างอิงจากสมาคมผู้ค้าทองคำ</p>
             </div>
             <div class="flex items-center space-x-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-xs text-slate-300">
                 <span class="relative flex h-2 w-2">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                <span id="systemStatus">กำลังตรวจสอบ API แหล่งข้อมูล...</span>
+                <span id="systemStatus">กำลังดึงข้อมูล...</span>
             </div>
         </div>
 
@@ -55,11 +55,11 @@
                 <div class="grid grid-cols-2 gap-4 mt-6">
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
                         <span class="text-xs text-slate-400 block mb-1">รับซื้อ (บาทละ)</span>
-                        <span class="text-2xl md:text-3xl font-bold text-slate-200" id="barBuy">-</span>
+                        <span class="text-2xl md:text-3xl font-bold text-slate-200" id="barBuy">0.00 ฿</span>
                     </div>
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
                         <span class="text-xs text-slate-400 block mb-1">ขายออก (บาทละ)</span>
-                        <span class="text-2xl md:text-3xl font-bold text-yellow-400" id="barSell">-</span>
+                        <span class="text-2xl md:text-3xl font-bold text-yellow-400" id="barSell">0.00 ฿</span>
                     </div>
                 </div>
             </div>
@@ -72,42 +72,21 @@
                 <div class="grid grid-cols-2 gap-4 mt-6">
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
                         <span class="text-xs text-slate-400 block mb-1">ฐานราคากลาง</span>
-                        <span class="text-2xl md:text-3xl font-bold text-slate-200" id="ornBuy">-</span>
+                        <span class="text-2xl md:text-3xl font-bold text-slate-200" id="ornBuy">0.00 ฿</span>
                     </div>
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-800">
                         <span class="text-xs text-slate-400 block mb-1">ขายออก (บาทละ)</span>
-                        <span class="text-2xl md:text-3xl font-bold text-yellow-400" id="ornSell">-</span>
+                        <span class="text-2xl md:text-3xl font-bold text-yellow-400" id="ornSell">0.00 ฿</span>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <div class="card-gradient rounded-2xl p-6 shadow-xl">
-            <h3 class="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                บันทึกการตรวจสอบความเที่ยงตรงของข้อมูล (Data Verification Hub)
-            </h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead>
-                        <tr class="border-b border-slate-700 text-slate-400">
-                            <th class="py-3 px-4 font-medium">แหล่งข้อมูล (Sources)</th>
-                            <th class="py-3 px-4 font-medium">ค่าที่อ่านได้ (ทองคำแท่งรับซื้อ)</th>
-                            <th class="py-3 px-4 font-medium">สถานะความเบี่ยงเบน (Deviation)</th>
-                            <th class="py-3 px-4 font-medium">ผลการตรวจสอบ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="verificationTableBody" class="text-slate-300 divide-y divide-slate-800/50">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
         <div class="card-gradient rounded-2xl p-6 shadow-xl mb-10">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold text-slate-200">กราฟสถิติและแนวโน้มราคา 5 วันล่าสุด</h3>
-                <span class="text-xs bg-amber-400/10 text-amber-400 px-3 py-1 rounded-full border border-amber-400/20" id="chartLabel">ทองคำแท่งรับซื้อ</span>
+                <h3 class="text-lg font-semibold text-slate-200">กราฟแนวโน้มราคารับซื้อทองคำแท่ง</h3>
+                <span class="text-xs bg-amber-400/10 text-amber-400 px-3 py-1 rounded-full border border-amber-400/20">ล่าสุด</span>
             </div>
             <div class="w-full h-[300px] bg-slate-900/40 rounded-xl p-2 border border-slate-800">
                 <canvas id="goldTrendChart"></canvas>
@@ -117,7 +96,8 @@
     </div>
 
     <script>
-        const PRIMARY_API = "https://api.chnwt.dev/thai-gold-api/latest";
+        // API หลักที่มีความน่าเชื่อถือสูงสุด
+        const API_URL = "https://api.chnwt.dev/thai-gold-api/latest";
         
         function cleanPrice(priceStr) {
             if (!priceStr) return 0;
@@ -125,79 +105,46 @@
         }
 
         function formatCurrency(num) {
-            return new Intl.NumberFormat('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(num) + ' ฿';
+            // บังคับให้แสดงทศนิยม 2 ตำแหน่งเสมอ เพื่อให้โชว์ .00
+            return new Intl.NumberFormat('th-TH', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            }).format(num) + ' ฿';
         }
 
-        async function runGoldAggregator() {
-            const tableBody = document.getElementById('verificationTableBody');
+        async function fetchGoldData() {
             const systemStatus = document.getElementById('systemStatus');
-            tableBody.innerHTML = ""; 
 
             try {
-                const response = await fetch(PRIMARY_API);
-                if (!response.ok) throw new Error("Primary API Failed");
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error("API Connection Failed");
                 
                 const data = await response.json();
                 const goldData = data.response;
                 
-                // --- จุดที่แก้ไข (Bug Fix): เปลี่ยนจาก gold_ornament เป็น gold ให้ตรงกับโครงสร้าง API ---
+                // สกัดและแปลงค่า
                 const liveBarBuy = cleanPrice(goldData.price.gold_bar.buy);
                 const liveBarSell = cleanPrice(goldData.price.gold_bar.sell);
                 const liveOrnBuy = cleanPrice(goldData.price.gold.buy);
                 const liveOrnSell = cleanPrice(goldData.price.gold.sell);
 
+                // แสดงผลบนเว็บ (ตอนนี้จะแสดงเลข .00 เสมอ)
                 document.getElementById('barBuy').innerText = formatCurrency(liveBarBuy);
                 document.getElementById('barSell').innerText = formatCurrency(liveBarSell);
                 document.getElementById('ornBuy').innerText = formatCurrency(liveOrnBuy);
                 document.getElementById('ornSell').innerText = formatCurrency(liveOrnSell);
 
-                systemStatus.innerText = `ดึงข้อมูลสำเร็จ | อัปเดตล่าสุด: ${goldData.update_date} ${goldData.update_time}`;
+                systemStatus.innerText = `อัปเดตล่าสุด: ${goldData.update_date} เวลา ${goldData.update_time}`;
+                systemStatus.classList.replace('text-slate-300', 'text-emerald-400');
 
-                const verifiedSources = [
-                    { name: "สมาคมผู้ค้าทองคำ (ผ่าน api.chnwt.dev)", price: liveBarBuy, type: "Primary" },
-                    { name: "GitHub OpenSource Backup API", price: liveBarBuy, type: "Mirror" },
-                    { name: "Global Price Computed Source", price: liveBarBuy + (Math.random() > 0.5 ? 50 : -50), type: "Calculated" } 
-                ];
-
-                const sortedPrices = verifiedSources.map(s => s.price).sort((a, b) => a - b);
-                const medianPrice = sortedPrices[Math.floor(sortedPrices.length / 2)];
-
-                verifiedSources.forEach(source => {
-                    const deviation = source.price - medianPrice;
-                    const deviationPercent = ((Math.abs(deviation) / medianPrice) * 100).toFixed(4);
-                    
-                    let statusBadge = "";
-                    let actionResult = "";
-
-                    if (deviationPercent === "0.0000") {
-                        statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 text-xs">0.00% (ตรงกับมัธยฐาน)</span>`;
-                        actionResult = `<span class="text-emerald-400 font-medium">✓ ผ่านการกวาดข้อมูล (เสถียรสูงสุด)</span>`;
-                    } else if (deviationPercent < 0.5) {
-                        statusBadge = `<span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded border border-amber-500/20 text-xs">+${deviation} ฿ (${deviationPercent}%)</span>`;
-                        actionResult = `<span class="text-amber-400 font-medium">⚠ ยอมรับได้ (Delay ไทม์โซน)</span>`;
-                    } else {
-                        statusBadge = `<span class="bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded border border-rose-500/20 text-xs">${deviation} ฿ (${deviationPercent}%)</span>`;
-                        actionResult = `<span class="text-rose-400 font-medium">❌ ถูกตัดสิทธิ์ (Outlier Detect)</span>`;
-                    }
-
-                    const row = `
-                        <tr class="hover:bg-slate-800/30 transition-colors">
-                            <td class="py-3 px-4 font-medium text-slate-200">${source.name} <span class="text-xs text-slate-500">(${source.type})</span></td>
-                            <td class="py-3 px-4">${formatCurrency(source.price)}</td>
-                            <td class="py-3 px-4">${statusBadge}</td>
-                            <td class="py-3 px-4">${actionResult}</td>
-                        </tr>
-                    `;
-                    tableBody.innerHTML += row;
-                });
-
+                // วาดกราฟ
                 renderTrendChart(liveBarBuy);
 
             } catch (error) {
-                console.error("Aggregator Error:", error);
-                systemStatus.innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อเครือข่าย API แหล่งข้อมูลหลัก";
-                document.getElementById('systemStatus').classList.replace('bg-slate-800', 'bg-rose-950');
-                document.getElementById('systemStatus').classList.add('text-rose-400');
+                console.error("Fetch Error:", error);
+                systemStatus.innerText = "ไม่สามารถดึงข้อมูลราคาทองคำได้ในขณะนี้";
+                systemStatus.classList.replace('bg-slate-800', 'bg-rose-950');
+                systemStatus.classList.replace('text-slate-300', 'text-rose-400');
             }
         }
 
@@ -209,6 +156,7 @@
                 goldChartInstance.destroy();
             }
 
+            // ข้อมูลจำลองสำหรับวาดกราฟอิงจากราคาปัจจุบัน
             const daysLabels = ['ย้อนหลัง 4 วัน', 'ย้อนหลัง 3 วัน', 'ย้อนหลัง 2 วัน', 'เมื่อวาน', 'ล่าสุด'];
             const historicalData = [
                 currentPrice - 200, 
@@ -223,7 +171,7 @@
                 data: {
                     labels: daysLabels,
                     datasets: [{
-                        label: 'ราคารับซื้อทองคำแท่ง',
+                        label: 'ราคารับซื้อทองคำแท่ง (บาท)',
                         data: historicalData,
                         borderColor: '#fbbf24', 
                         backgroundColor: 'rgba(251, 191, 36, 0.05)',
@@ -240,7 +188,18 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    // จัดรูปแบบตัวเลขใน Tooltip ให้มี .00 ด้วย
+                                    return new Intl.NumberFormat('th-TH', { 
+                                        minimumFractionDigits: 2, 
+                                        maximumFractionDigits: 2 
+                                    }).format(context.raw) + ' ฿';
+                                }
+                            }
+                        }
                     },
                     scales: {
                         x: {
@@ -251,7 +210,9 @@
                             grid: { color: 'rgba(51, 65, 85, 0.3)' },
                             ticks: {
                                 color: '#94a3b8',
-                                callback: function(value) { return value.toLocaleString('th-TH'); }
+                                callback: function(value) { 
+                                    return new Intl.NumberFormat('th-TH').format(value); 
+                                }
                             }
                         }
                     }
@@ -259,7 +220,8 @@
             });
         }
 
-        window.onload = runGoldAggregator;
+        // เรียกใช้งานฟังก์ชันดึงข้อมูลเมื่อโหลดหน้าเว็บเสร็จ
+        window.onload = fetchGoldData;
     </script>
 </body>
 </html>
