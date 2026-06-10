@@ -93,8 +93,8 @@
     </div>
 
     <script>
-        // ใช้ CORS Proxy เพื่อดึง HTML ตรงจากเว็บสมาคมฯ
-        const PROXY_URL = "https://api.allorigins.win/raw?url=";
+      // ใช้ CORS Proxy ตัวใหม่ที่เสถียรกว่า
+        const PROXY_URL = "https://corsproxy.io/?"; 
         const TARGET_URL = "https://www.goldtraders.or.th/";
         
         function cleanPrice(priceStr) {
@@ -114,18 +114,18 @@
             const systemStatus = document.getElementById('systemStatus');
 
             try {
-                // ดึงข้อมูล HTML จากหน้าเว็บสมาคมฯ
+                // ดึงข้อมูล HTML จากหน้าเว็บสมาคมฯ ผ่าน Proxy ใหม่
+                // corsproxy.io ต้องทำการ encode ตัว URL ด้วย
                 const response = await fetch(PROXY_URL + encodeURIComponent(TARGET_URL));
                 if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลหน้าเว็บได้");
                 
                 const htmlText = await response.text();
                 
-                // แปลง Text เป็น HTML DOM เพื่อให้ใช้คำสั่ง getElementById ได้
+                // แปลง Text เป็น HTML DOM
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, "text/html");
                 
                 // เจาะหา ID ของตัวเลขราคาทองบนเว็บสมาคมฯ
-                // อ้างอิง ID จากโครงสร้างเว็บ https://www.goldtraders.or.th/
                 const rawBarBuy = doc.getElementById("DetailPlace_uc_goldprices1_lblTarBuy")?.innerText || "0";
                 const rawBarSell = doc.getElementById("DetailPlace_uc_goldprices1_lblTarSell")?.innerText || "0";
                 const rawOrnBuy = doc.getElementById("DetailPlace_uc_goldprices1_lblGoldBuy")?.innerText || "0";
@@ -138,8 +138,7 @@
                 const liveOrnBuy = cleanPrice(rawOrnBuy);
                 const liveOrnSell = cleanPrice(rawOrnSell);
 
-                // ตรวจสอบว่าได้ข้อมูลมาจริงหรือไม่
-                if (liveBarBuy === 0) throw new Error("โครงสร้างหน้าเว็บอาจมีการเปลี่ยนแปลง");
+                if (liveBarBuy === 0) throw new Error("ไม่พบข้อมูลบนหน้าเว็บ (อาจถูกบล็อกหรือเว็บเปลี่ยนโครงสร้าง)");
 
                 // แสดงผลบนหน้าเว็บ
                 document.getElementById('barBuy').innerText = formatCurrency(liveBarBuy);
@@ -147,22 +146,19 @@
                 document.getElementById('ornBuy').innerText = formatCurrency(liveOrnBuy);
                 document.getElementById('ornSell').innerText = formatCurrency(liveOrnSell);
 
-                // ดึงเฉพาะส่วนเวลามาแสดง (ตัดคำว่า "ประจำวันที่" ออกให้สั้นลง)
                 const shortTime = updateTimeText.replace("ประจำวันที่ ", "");
                 systemStatus.innerText = `อัปเดตล่าสุด: ${shortTime}`;
                 systemStatus.classList.replace('text-slate-300', 'text-emerald-400');
 
-                // วาดกราฟ
                 renderTrendChart(liveBarBuy);
 
             } catch (error) {
                 console.error("Scraping Error:", error);
-                systemStatus.innerText = "เกิดข้อผิดพลาดในการอ่านหน้าเว็บสมาคมฯ";
+                systemStatus.innerText = "Proxy ถูกบล็อก หรือการเชื่อมต่อล้มเหลว";
                 systemStatus.classList.replace('bg-slate-800', 'bg-rose-950');
                 systemStatus.classList.replace('text-slate-300', 'text-rose-400');
             }
         }
-
         let goldChartInstance = null;
         function renderTrendChart(currentPrice) {
             const ctx = document.getElementById('goldTrendChart').getContext('2d');
