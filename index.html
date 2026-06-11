@@ -11,167 +11,127 @@
         /* บังคับให้หน้าเว็บเต็มจอพอดีเสมอ เหมาะสำหรับเปิดบนจอ TV */
         body { font-family: 'Chakra Petch', sans-serif; background-color: #000; color: #fff; overflow: hidden; height: 100vh; width: 100vw; }
         
-        /* ปรับขนาดบล็อกแบ่งสัดส่วนหน้าจอ */
-        .card-box { height: 42vh; display: flex; flex-direction: column; justify-content: center; }
+        /* ปรับขนาดให้พอดีกับจอ 1080p โดยแบ่งสัดส่วน */
+        .card-box { height: 44vh; display: flex; flex-direction: column; justify-content: center; }
         
         .big-text { font-size: 8.5rem; font-weight: 700; line-height: 1; }
-        .label-text { font-size: 2.8rem; font-weight: 700; }
+        .label-text { font-size: 3rem; font-weight: 700; }
         .diff-text { font-size: 3rem; font-weight: 700; }
-        .flash-alert { background-color: #f59e0b !important; transition: background-color 0.3s ease; }
+        .flash-alert { background-color: #f59e0b !important; }
     </style>
 </head>
-<body class="flex flex-col h-screen w-screen p-6 justify-between select-none bg-black">
+<body class="flex flex-col p-4 gap-4">
 
-    <div class="flex flex-col justify-between h-full w-full">
-        <div class="flex justify-between items-center border-b-2 border-gray-800 pb-3">
-            <h1 class="text-4xl font-bold text-yellow-400 tracking-wider">รายงานราคาทองคำสมาคม Real-time (96.5%)</h1>
-            <div class="flex items-center gap-4">
-                <span class="text-2xl text-gray-500 font-bold">เปลี่ยนแปลงจากรอบก่อน:</span>
-                <div id="diffBuy" class="diff-text text-gray-400">0</div>
+    <div class="h-[8vh] w-full text-center flex items-center justify-center bg-slate-800 rounded-2xl">
+        <h1 class="text-5xl font-bold text-white uppercase tracking-widest">ราคาสมาคมค้าทองคำ 96.5%</h1>
+    </div>
+
+    <div class="flex flex-col gap-4 h-[92vh]">
+        
+        <!-- บล็อกทองคำแท่ง -->
+        <div id="barCard" class="card-box bg-red-900 px-10 rounded-3xl border-4 border-red-500 shadow-2xl">
+            <h2 class="text-5xl font-bold text-white mb-2">ทองคำแท่ง</h2>
+            <div class="flex items-center justify-between">
+                <span class="label-text">รับซื้อ <span id="diffBuy" class="ml-6"></span></span>
+                <span id="barBuy" class="big-text text-white">0</span>
+            </div>
+            <div class="flex items-center justify-between mt-4">
+                <span class="label-text">ขายออก</span>
+                <span id="barSell" class="big-text text-yellow-300">0</span>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-6 my-2">
-            <div class="bg-gray-900 rounded-3xl p-6 card-box border-2 border-yellow-600/30">
-                <div class="label-text text-gray-400 mb-2 text-center lg:text-left">ทองคำแท่ง รับซื้อ</div>
-                <div id="barBuy" class="big-text text-green-400 text-center font-mono">00,000</div>
+        <!-- บล็อกทองรูปพรรณ -->
+        <div id="ornCard" class="card-box bg-blue-900 px-10 rounded-3xl border-4 border-blue-500 shadow-2xl">
+            <h2 class="text-5xl font-bold text-white mb-2">ทองรูปพรรณ</h2>
+            <div class="flex items-center justify-between">
+                <span class="label-text">รับซื้อ</span>
+                <span id="ornBuy" class="big-text text-white">0</span>
             </div>
-            <div class="bg-gray-900 rounded-3xl p-6 card-box border-2 border-yellow-600/30">
-                <div class="label-text text-gray-400 mb-2 text-center lg:text-left">ทองคำแท่ง ขายออก</div>
-                <div id="barSell" class="big-text text-red-400 text-center font-mono">00,000</div>
+            <div class="flex items-center justify-between mt-4">
+                <span class="label-text">ขายออก</span>
+                <span id="ornSell" class="big-text text-yellow-300">0</span>
             </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-6 my-2">
-            <div class="bg-gray-900 rounded-3xl p-6 card-box border-2 border-orange-600/30">
-                <div class="label-text text-gray-400 mb-2 text-center lg:text-left">ทองรูปพรรณ รับซื้อคืน (ฐานภาษี)</div>
-                <div id="ornBuy" class="big-text text-green-500 text-center font-mono">00,000</div>
-            </div>
-            <div class="bg-gray-900 rounded-3xl p-6 card-box border-2 border-orange-600/30">
-                <div class="label-text text-gray-400 mb-2 text-center lg:text-left">ทองรูปพรรณ ขายออก (+500)</div>
-                <div id="ornSell" class="big-text text-red-500 text-center font-mono">00,000</div>
-            </div>
-        </div>
-
-        <div class="flex justify-between items-center text-xl text-gray-500 pt-2 border-t border-gray-800">
-            <div id="systemStatus">กำลังโหลดข้อมูลราคา...</div>
-            <div class="text-sm text-gray-600">อ้างอิงสูตรคำนวณราคากลาง สมาคมค้าทองคำแห่งประเทศไทย</div>
         </div>
     </div>
 
+    <!-- ส่วนแสดงสถานะการอัปเดตของสมาคมฯ -->
+    <div id="systemStatus" class="fixed bottom-4 left-6 text-2xl text-slate-400">กำลังเชื่อมต่อ...</div>
+
+    <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
     <script>
-        const apiURL = 'https://apicheckpricev3.huasengheng.com/api/Values/GetPrice';
+        // เปลี่ยนมาใช้ API ที่ดึงข้อมูลจากเว็บสมาคมค้าทองคำ (goldtraders.or.th) โดยตรง
+        const API_URL = "https://api.chnwt.dev/thai-gold-api";
         let lastPrice = 0;
 
-        // ฟังก์ชันจัดรูปแบบตัวเลขให้มีคอมมา (เช่น 42,000)
-        function formatNumber(num) {
-            return num.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        // ฟังก์ชันจัดรูปแบบตัวเลข (กำหนดหลักทศนิยมได้)
+        function formatNumber(num, fractionDigits = 0) { 
+            return new Intl.NumberFormat('th-TH', { 
+                minimumFractionDigits: fractionDigits,
+                maximumFractionDigits: fractionDigits 
+            }).format(num); 
         }
 
-        // เอฟเฟกต์กะพริบหน้าจอเมื่อราคามีการเปลี่ยนแปลง
-        function triggerAlert() {
-            document.body.classList.add('flash-alert');
-            setTimeout(() => {
-                document.body.classList.remove('flash-alert');
-            }, 1000);
+        async function triggerAlert() {
+            const body = document.body;
+            try { await document.getElementById('alertSound').play(); } catch(e) {}
+            body.classList.add('flash-alert');
+            setTimeout(() => body.classList.remove('flash-alert'), 10000);
         }
 
         async function fetchGoldPrice() {
             try {
-                const response = await fetch(apiURL);
+                const response = await fetch(API_URL);
                 const data = await response.json();
                 
-                let barBuy = 0;
-                let barSell = 0;
-
-                // ตรวจสอบและแกะข้อมูลโครงสร้างรูปแบบ Array ของ ฮั่วเซ่งเฮง API
-                if (Array.isArray(data)) {
-                    // ค้นหา Object ข้อมูลราคาสมาคม (เช็คจากคำว่า สมาคม หรือ Asso)
-                    let ref = data.find(item => {
-                        const name = (item.Key || item.Name || item.name || item.GoldType || "").toString();
-                        return name.includes("สมาคม") || name.includes("Asso") || name.includes("ASSO") || name.includes("GTA");
-                    });
-
-                    // ถ้าไม่เจอบล็อกสมาคมเฉพาะ ให้ดึงบล็อกทองแท่ง 96.5% ทั่วไป
-                    if (!ref) {
-                        ref = data.find(item => {
-                            const name = (item.Key || item.Name || item.name || item.GoldType || "").toString();
-                            return name.includes("96.5") && (name.includes("แท่ง") || name.includes("BAR") || name.includes("Bar"));
-                        });
-                    }
-
-                    // ป้องกันระบบพังด้วยการ fallback ไปตัวแรกสุดถ้าหาคีย์ไม่เจอเลย
-                    if (!ref) ref = data[0];
-
-                    if (ref) {
-                        const buyStr = ref.Buy || ref.buy || ref.BuyPrice || ref.buyPrice || "0";
-                        const sellStr = ref.Sell || ref.sell || ref.SellPrice || ref.sellPrice || "0";
-                        barBuy = parseFloat(buyStr.toString().replace(/,/g, ''));
-                        barSell = parseFloat(sellStr.toString().replace(/,/g, ''));
-                    }
-                } 
-                // รองรับกรณีที่ API แปลงเป็น Object ชั้นเดียวชั้นนอก
-                else if (data && typeof data === 'object') {
-                    const target = data.data || data;
-                    if (Array.isArray(target)) {
-                        let ref = target.find(item => {
-                            const name = (item.Key || item.Name || item.name || "").toString();
-                            return name.includes("สมาคม") || name.includes("Asso") || name.includes("96.5");
-                        }) || target[0];
-                        barBuy = parseFloat((ref.Buy || ref.buy || ref.BuyPrice || 0).toString().replace(/,/g, ''));
-                        barSell = parseFloat((ref.Sell || ref.sell || ref.SellPrice || 0).toString().replace(/,/g, ''));
-                    } else {
-                        barBuy = parseFloat((target.AssoBuy || target.assoBuy || target.BarBuy || target.barBuy || target.Buy || target.buy || 0).toString().replace(/,/g, ''));
-                        barSell = parseFloat((target.AssoSell || target.assoSell || target.BarSell || target.barSell || target.Sell || target.sell || 0).toString().replace(/,/g, ''));
-                    }
-                }
-
-                // หากค่าที่ได้มาเป็น 0 หรือไม่ถูกต้อง จะข้ามการอัปเดตเพื่อรักษาหน้าจอเดิมไว้
-                if (barBuy === 0 || barSell === 0 || isNaN(barBuy) || isNaN(barSell)) {
-                    console.error("Data mapping error or API down.");
+                // ตรวจสอบสถานะการดึงข้อมูลจาก API
+                if (data.status !== "success" || !data.response) {
+                    console.error("API Error or data structure changed.");
                     return;
                 }
 
-                // คำนวณส่วนต่างราคาขึ้น-ลงเมื่อเทียบกับข้อมูลที่ดึงมาครั้งก่อนหน้า
+                const priceData = data.response.price;
+
+                // แกะข้อมูลและลบคอมมาออกเพื่อแปลงเป็นตัวเลขสำหรับการคำนวณส่วนต่าง
+                const barBuy = parseFloat(priceData.gold_bar.buy.replace(/,/g, ''));
+                const barSell = parseFloat(priceData.gold_bar.sell.replace(/,/g, ''));
+                const ornBuy = parseFloat(priceData.gold.buy.replace(/,/g, '')); // ใน API คีย์ 'gold' คือทองรูปพรรณ
+                const ornSell = parseFloat(priceData.gold.sell.replace(/,/g, ''));
+
+                // คำนวณส่วนต่างเมื่อราคาทองคำแท่งรับซื้อมีการเปลี่ยนแปลง
                 if (lastPrice !== 0 && lastPrice !== barBuy) {
                     const diff = barBuy - lastPrice;
                     const diffEl = document.getElementById('diffBuy');
-                    if (diffEl) {
-                        diffEl.innerText = (diff > 0 ? "+" : "") + formatNumber(diff);
-                        diffEl.className = "diff-text " + (diff > 0 ? "text-green-400" : "text-red-400");
-                    }
+                    diffEl.innerText = (diff > 0 ? "+" : "") + formatNumber(diff, 0);
+                    diffEl.className = "diff-text " + (diff > 0 ? "text-green-300" : "text-red-300");
                     triggerAlert();
                 }
+
                 lastPrice = barBuy;
 
-                // =========================================================
-                // สูตรคำนวณราคาทองรูปพรรณ (ตรงตามสูตรคำนวณหน้าเว็บราคาทองวันนี้.com)
-                // =========================================================
-                // 1. ทองรูปพรรณ ขายออก = ราคาทองคำแท่งขายออก + 500 บาท
-                const ornSell = barSell + 500;
+                // อัปเดตราคาแสดงผลบน UI หน้าจอ
+                document.getElementById('barBuy').innerText = formatNumber(barBuy, 0);
+                document.getElementById('barSell').innerText = formatNumber(barSell, 0);
                 
-                // 2. ทองรูปพรรณ รับซื้อคืน = ราคาทองคำแท่งรับซื้อคืน หักออก 1.8% (หรือคูณด้วย 0.982)
-                const ornBuy = barBuy - (barBuy * 0.018); 
+                // ราคารับซื้อคืนทองรูปพรรณของสมาคมฯ จะมีเศษทศนิยม (ราคาฐานภาษี) จึงเปิดให้แสดงทศนิยม 2 ตำแหน่ง
+                document.getElementById('ornBuy').innerText = formatNumber(ornBuy, 2);
+                document.getElementById('ornSell').innerText = formatNumber(ornSell, 0);
 
-                // นำค่าที่คำนวณเสร็จเรียบร้อยไปอัปเดตแสดงผลบนหน้าจอ UI
-                document.getElementById('barBuy').innerText = formatNumber(barBuy);
-                document.getElementById('barSell').innerText = formatNumber(barSell);
-                document.getElementById('ornBuy').innerText = formatNumber(ornBuy);
-                document.getElementById('ornSell').innerText = formatNumber(ornSell);
-
-                // แสดงเวลาที่ระบบทำการรีเฟรชข้อมูลสำเร็จล่าสุด
-                const now = new Date();
-                document.getElementById('systemStatus').innerText = `อัปเดตล่าสุด: ${now.toLocaleDateString('th-TH')} เวลา ${now.toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', second:'2-digit'})} น.`;
-
-            } catch (error) {
-                console.error("Fetch error:", error);
-                document.getElementById('systemStatus').innerText = "เกิดข้อผิดพลาดในการดึงข้อมูล (กำลังลองใหม่...)";
+                // ดึงวันเวลาและรอบที่ประกาศจากหน้าเว็บสมาคมฯ มาแสดงผลด้านล่างจอ
+                const updateDate = data.response.update_date;
+                const updateTime = data.response.update_time;
+                document.getElementById('systemStatus').innerText = `อัปเดตสมาคมฯ: วันที่ ${updateDate} ${updateTime}`;
+                
+            } catch (error) { 
+                console.error(error); 
+                document.getElementById('systemStatus').innerText = "เกิดข้อผิดพลาดในการเชื่อมต่อ (กำลังลองใหม่)...";
             }
         }
 
-        // ตั้งเวลาดึงข้อมูลใหม่โดยอัตโนมัติในทุกๆ 30 วินาที (30000 มิลลิวินาที)
+        // ตั้งเวลาดึงข้อมูลใหม่ทุกๆ 30 วินาที
         setInterval(fetchGoldPrice, 30000);
-        // สั่งให้ทำงานทันที 1 ครั้งเมื่อเปิดหน้าเว็บ
+        // สั่งให้ทำงานทันทีในครั้งแรกที่เปิดหน้าจอ
         fetchGoldPrice();
     </script>
 </body>
